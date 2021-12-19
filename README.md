@@ -1,5 +1,7 @@
 # node-nakiri
 
+[![npm version](https://img.shields.io/npm/v/node-nakiri.svg?style=flat)](https://www.npmjs.com/package/node-nakiri)
+
 Node.js API client for [Nakiri](https://github.com/jozsefsallai/nakiri).
 
 ## Getting Started
