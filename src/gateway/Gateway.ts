@@ -56,6 +56,10 @@ export class Gateway {
 
   public async waitForWebsocket(): Promise<void> {
     return new Promise((resolve, reject) => {
+      if (this.ws.readyState === WebSocket.OPEN) {
+        return resolve();
+      }
+
       this.ws.on('open', resolve);
       this.ws.on('error', reject);
     });
