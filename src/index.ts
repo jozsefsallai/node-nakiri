@@ -188,16 +188,18 @@ export class Client {
     }
   }
 
-  public analyze({ content, messageContext, options }: AnalysisRequest) {
+  /**
+   * Will request the analysis of a message. You should listen to the `analysis`
+   * notification for the result. This method will NOT return the analysis
+   * result right away, as it's an asynchronous operation.
+   * @param {AnalysisRequest} request - The analysis request.
+   */
+  public analyze(req: AnalysisRequest) {
     if (!this.useGateway || !this.gateway) {
       return;
     }
 
-    this.gateway.emit<AnalysisRequest>('analysis', {
-      content,
-      messageContext,
-      options,
-    });
+    this.gateway.emit<AnalysisRequest>('analysis', req);
   }
 
   // GATEWAY END
