@@ -30,19 +30,21 @@ export class Gateway {
 
   private bootstrap() {
     this.ws.on('message', async (message) => {
-      const [event, data]: GatewayEvent = JSON.parse(message.toString());
+      const [event, res]: GatewayEvent = JSON.parse(message.toString());
 
-      if (event === 'error' || !data.ok) {
-        const error = new GatewayError(data.error);
+      if (event === 'error' || !res.ok) {
+        const error = new GatewayError(res.error);
         this.client.emit('error', error);
         return;
       }
 
       if (event === 'identify') {
-        this.setSessionId((data as GatewayIdentifyResponse).data!.sessionId);
+        this.setSessionId((res as GatewayIdentifyResponse).data!.sessionId);
         this.client.emit('ready');
         return;
       }
+
+      const { data } = res;
 
       this.client.emit(event, data);
 

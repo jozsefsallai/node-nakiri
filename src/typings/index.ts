@@ -17,7 +17,15 @@ export {
   Phrase,
 } from './models';
 
-export { BlacklistMutationData } from './gateway';
+export {
+  BlacklistMutationData,
+  AnalyzerOptions,
+  MessageContext,
+  AnalysisRequest,
+  PhraseSimilarityMap,
+  AnalyzerResult,
+  AnalysisNotification,
+} from './gateway';
 
 export {
   NakiriHTTPGetYouTubeVideosResponse,

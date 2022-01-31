@@ -7,6 +7,8 @@ import {
   GatewayIdentifyRequest,
   GatewayIdentifyResponse,
   GatewayReconnectRequest,
+  AnalysisNotification,
+  AnalysisRequest,
 } from './typings/gateway';
 import {
   GatewayEventHandlers,
@@ -138,6 +140,11 @@ export class Client {
     handler: GatewayEventHandler<BlacklistMutationData>,
   ): void;
 
+  public on(
+    event: 'analysis',
+    handler: GatewayEventHandler<AnalysisNotification>,
+  ): void;
+
   /**
    * Ready event handler. Will fire when the Gateway was successfully
    * authenticated and a session has been established.
@@ -179,6 +186,18 @@ export class Client {
     if (this.handlers[event]) {
       this.handlers[event](data);
     }
+  }
+
+  public analyze({ content, messageContext, options }: AnalysisRequest) {
+    if (!this.useGateway || !this.gateway) {
+      return;
+    }
+
+    this.gateway.emit<AnalysisRequest>('analysis', {
+      content,
+      messageContext,
+      options,
+    });
   }
 
   // GATEWAY END
