@@ -48,7 +48,7 @@ export class Gateway {
 
       this.client.emit(event, data);
 
-      if ('notificationId' in data) {
+      if (data && 'notificationId' in data) {
         this.emit('ack', {
           notificationId: data.notificationId,
         });
