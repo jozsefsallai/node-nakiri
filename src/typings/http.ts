@@ -61,8 +61,6 @@ export type NakiriHTTPGetPhrasesResponse = NakiriHTTPGetBlacklistResponse<
 >;
 
 export interface NakiriHTTPAddBlacklistEntryRequest {
-  group?: string;
-  guild?: string;
   severity?: Severity;
 }
 
@@ -89,5 +87,5 @@ export interface NakiriHTTPAddDiscordGuildEntryRequest
 
 export interface NakiriHTTPAddPhraseEntryRequest
   extends NakiriHTTPAddBlacklistEntryRequest {
-  phrase: string;
+  content: string;
 }

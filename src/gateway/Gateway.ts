@@ -54,12 +54,18 @@ export class Gateway {
         });
       }
     });
+
+    this.ws.on('close', this.client.attemptToReconnect.bind(this.client));
   }
 
   public async waitForWebsocket(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.ws.readyState === WebSocket.OPEN) {
         return resolve();
+      }
+
+      if (this.ws.readyState === WebSocket.CLOSED) {
+        return reject();
       }
 
       this.ws.on('open', resolve);

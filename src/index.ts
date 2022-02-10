@@ -9,6 +9,7 @@ import {
   GatewayReconnectRequest,
   AnalysisNotification,
   AnalysisRequest,
+  GatewayReconnectResponse,
 } from './typings/gateway';
 import {
   GatewayEventHandlers,
@@ -44,6 +45,7 @@ export class Client {
   private readonly group?: string;
   protected readonly useGateway: boolean;
   protected readonly useHTTP: boolean;
+  protected readonly gatewayReconnectInterval: number;
 
   private gateway?: Gateway;
   private handlers: GatewayEventHandlers = {};
@@ -60,6 +62,17 @@ export class Client {
     this.useGateway = opts?.useGateway ?? true;
     this.useHTTP = opts?.useHTTP ?? true;
     this.group = opts?.group;
+
+    this.gatewayReconnectInterval = 10000;
+
+    if (opts && typeof opts.gatewayReconnectInterval === 'number') {
+      if (
+        opts.gatewayReconnectInterval === 0 ||
+        opts.gatewayReconnectInterval >= 10000
+      ) {
+        this.gatewayReconnectInterval = opts.gatewayReconnectInterval;
+      }
+    }
 
     if (this.useGateway) {
       this.gateway = new Gateway(this);
@@ -159,6 +172,18 @@ export class Client {
   ): void;
 
   /**
+   * Reconnect event handler. Will fire on successful Gateway reconnection and
+   * authentication.
+   * @param {'reconnect'} event - The event name.
+   * @param {GatewayEventHandler<GatewayReconnectResponse>} handler - The event
+   * handler.
+   */
+  public on(
+    event: 'reconnect',
+    handler: GatewayEventHandler<GatewayReconnectResponse>,
+  ): void;
+
+  /**
    * Generic event handler.
    *
    * @param {string} event - The event name.
@@ -200,6 +225,27 @@ export class Client {
     }
 
     this.gateway.emit<AnalysisRequest>('analysis', req);
+  }
+
+  public async attemptToReconnect() {
+    if (!this.gatewayReconnectInterval) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve) => {
+      const gatewayReconnectIntervalId = setInterval(() => {
+        const sessionId = this.gateway!.getSessionId();
+
+        this.gateway = new Gateway(this);
+        this.bootstrapGateway();
+        this.gateway.setSessionId(sessionId);
+
+        this.login(this.apiKey!).then(() => {
+          clearInterval(gatewayReconnectIntervalId);
+          return resolve();
+        });
+      }, this.gatewayReconnectInterval);
+    });
   }
 
   // GATEWAY END

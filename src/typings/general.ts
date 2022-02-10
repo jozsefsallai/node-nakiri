@@ -48,12 +48,17 @@ export type Blacklist =
  * @property {boolean} useHTTP - Whether or not to use the HTTP client. If not
  * provided, the default value is `true`.
  * @property {string} group - The ID of the group that the API key belongs to.
+ * @property {number} gatewayReconnectInterval - The interval in milliseconds
+ * between reconnect attempts. If not provided, the default value is `10000`.
+ * Must be a value greater than 10000. If set to 0, there will be no reconnect
+ * attempts.
  */
 export interface NakiriClientOptions {
   baseUrl?: string;
   useGateway?: boolean;
   useHTTP?: boolean;
   group?: string;
+  gatewayReconnectInterval?: number;
 }
 
 /**

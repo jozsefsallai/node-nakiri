@@ -149,12 +149,15 @@ export interface AnalysisRequest {
  * @typedef {Object} PhraseSimilarityMap
  *
  * @property {string} phrase - The banned phrase's content.
+ * @property {string} word - The word from the original string that got the
+ * similarity index.
  * @property {number} similarity - The similarity index of the message to the
  * banned phrase (real number from 0 to 1).
  * @property {Severity} - The severity rank of the phrase.
  */
 export interface PhraseSimilarityMap {
   phrase: string;
+  word: string;
   similarity: number;
   severity: Severity;
 }
