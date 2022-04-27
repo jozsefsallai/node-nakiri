@@ -20,11 +20,14 @@ export class Gateway {
 
   private handlers: GatewayEventHandlers = {};
 
-  constructor(client: Client) {
+  private reconnecting: boolean;
+
+  constructor(client: Client, reconnecting: boolean = false) {
     this.client = client;
     this.ws = new WebSocket(this.makeWebsocketUrl(client.baseUrl), {
       timeout: 10000,
     });
+    this.reconnecting = reconnecting;
     this.bootstrap();
   }
 
@@ -32,7 +35,7 @@ export class Gateway {
     this.ws.on('message', async (message) => {
       const [event, res]: GatewayEvent = JSON.parse(message.toString());
 
-      if (event === 'error' || !res.ok) {
+      if (event === 'error' || event === 'gatewayError' || !res.ok) {
         const error = new GatewayError(res.error);
         this.client.emit('error', error);
         return;
@@ -40,6 +43,13 @@ export class Gateway {
 
       if (event === 'identify') {
         this.setSessionId((res as GatewayIdentifyResponse).data!.sessionId);
+        this.reconnecting = false;
+        this.client.emit('ready');
+        return;
+      }
+
+      if (event === 'reconnect') {
+        this.reconnecting = false;
         this.client.emit('ready');
         return;
       }
@@ -87,6 +97,14 @@ export class Gateway {
 
   public setSessionId(sessionId: string) {
     this.sessionId = sessionId;
+  }
+
+  public unsetSessionId(): void {
+    this.sessionId = undefined;
+  }
+
+  public isReconnecting(): boolean {
+    return this.reconnecting;
   }
 
   public on<T>(event: string, handler: GatewayEventHandler<T>): void {

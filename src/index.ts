@@ -81,9 +81,45 @@ export class Client {
   }
 
   private bootstrapGateway() {
-    this.on('error', (err) => {
-      throw err;
-    });
+    this.registerDefaultEventHandlers();
+  }
+
+  private registerDefaultEventHandlers() {
+    this.on('error', this.defaultErrorEventHandler.bind(this));
+  }
+
+  private defaultErrorEventForReconnectHandler(err: GatewayError): boolean {
+    if (err.code === 'INVALID_SESSION' && this.gateway?.isReconnecting()) {
+      this.gateway?.unsetSessionId();
+      return true;
+    }
+
+    return false;
+  }
+
+  private defaultErrorEventHandler(err: GatewayError) {
+    if (this.defaultErrorEventForReconnectHandler(err)) {
+      return;
+    }
+
+    throw err;
+  }
+
+  private registerEventHandler<T>(
+    event: string,
+    handler: GatewayEventHandler<T>,
+  ) {
+    if (event === 'error') {
+      this.handlers[event] = async (err: GatewayError) => {
+        if (this.defaultErrorEventForReconnectHandler(err)) {
+          return;
+        }
+
+        await (handler as any)(err);
+      };
+    }
+
+    this.handlers[event] = handler;
   }
 
   /**
@@ -190,7 +226,7 @@ export class Client {
    * @param {GatewayEventHandler<any>} handler - The event handler.
    */
   public on<T>(event: string, handler: GatewayEventHandler<T>) {
-    this.handlers[event] = handler;
+    this.registerEventHandler<T>(event, handler);
   }
 
   /**
@@ -236,7 +272,7 @@ export class Client {
       const gatewayReconnectIntervalId = setInterval(() => {
         const sessionId = this.gateway!.getSessionId();
 
-        this.gateway = new Gateway(this);
+        this.gateway = new Gateway(this, true);
         this.bootstrapGateway();
         this.gateway.setSessionId(sessionId);
 
